@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>  // for isprint()
 #include <unistd.h> // for getopt()
+#include <signal.h> // for catching the ctrl+c
 
 #include "functions.h"
 
@@ -24,6 +25,10 @@ int main(int argc, char**argv) {
 
     int n = 1;
     offset = 0;
+    // catching the ctrl case
+    // in case if you're forgot to type -f file_name
+    signal(SIGINT, SIGINT_handler);
+
     while (bytes_copied = read(STDIN_FILENO, buffer, MAX_BUFF)) {
       // if the current buffer it's not enough
       // then reallocate some more
