@@ -10,7 +10,7 @@
 
 int main(int argc, char**argv) {
   int flag;
-  char *file_name;
+  char *file_name = NULL;
   unsigned char *content;
   unsigned char buffer[MAX_BUFF];
 
@@ -46,21 +46,29 @@ int main(int argc, char**argv) {
     int opt;
     flag = READ_FROM_FILE;
 
-    while ((opt = getopt(argc, argv, ":vhf:")) != -1) {
+    while ((opt = getopt(argc, argv, ":f:hv")) != EOF) {
       switch (opt) {
         case 'f':
           file_name = optarg;
           break;
-        case 'h':
-          print_help();
-          break;
         case 'v':
           print_version();
           break;
+        case ':':
+          printf("Please specify the option argument.\n");
+          exit(1);
+          break;
+        case 'h':
         case '?':
           print_help();
           break;
       }
+    }
+
+    // preventing from reading a file without
+    // specifying them first
+    if (file_name == NULL && optind) {
+      print_help();
     }
 
     FILE *fp = fopen(file_name, "rb");

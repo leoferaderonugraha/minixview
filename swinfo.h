@@ -2,7 +2,7 @@
 #define SWINFO
 
 #ifndef SW_VERSION
-#define SW_VERSION "0.9.2"
+#define SW_VERSION "0.9.3"
 #endif
 
 #ifndef SW_AUTHOR
