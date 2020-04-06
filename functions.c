@@ -1,5 +1,6 @@
-#include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
 #include "functions.h"
 
@@ -27,4 +28,9 @@ void cpnb(void *dst, void *src, int n) {
     */
     *dptr++ = *sptr++;
   }
+}
+
+void SIGINT_handler() {
+  printf("\n");
+  exit(1);
 }
