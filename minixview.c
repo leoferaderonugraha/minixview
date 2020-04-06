@@ -76,9 +76,9 @@ int main(int argc, char**argv) {
       printf("%c", (isprint(ch)) ? ch : '.');
     }
 
+    line_offset += total_ch;
     total_ch = 0;
     total_space = 0;
-    line_offset += 16;
     printf("\n");
   }
 
