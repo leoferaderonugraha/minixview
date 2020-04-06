@@ -1,6 +1,7 @@
 #ifndef FUNCTIONS
 #define FUNCTIONS
 
+
 int get_file_size(char *fname);
 int get_file_size2(FILE *fp);
 
@@ -11,6 +12,7 @@ void SIGINT_handler();
 void cpnb(void *dst, void *src, int n);
 
 void print_help();
+void print_version();
 
 enum stats {
   READ_FROM_STDIN,

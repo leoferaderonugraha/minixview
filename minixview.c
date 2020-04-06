@@ -46,7 +46,7 @@ int main(int argc, char**argv) {
     int opt;
     flag = READ_FROM_FILE;
 
-    while ((opt = getopt(argc, argv, ":hf:")) != -1) {
+    while ((opt = getopt(argc, argv, ":vhf:")) != -1) {
       switch (opt) {
         case 'f':
           file_name = optarg;
@@ -54,7 +54,11 @@ int main(int argc, char**argv) {
         case 'h':
           print_help();
           break;
+        case 'v':
+          print_version();
+          break;
         case '?':
+          print_help();
           break;
       }
     }
