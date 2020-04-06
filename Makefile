@@ -1,2 +1,2 @@
 all:
-	tcc minixview.c functions.c -o mxview
+	gcc minixview.c functions.c -o mxview
