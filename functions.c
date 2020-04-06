@@ -34,3 +34,13 @@ void SIGINT_handler() {
   printf("\n");
   exit(1);
 }
+
+void print_help() {
+  char help_msg[] = \
+    "Use the following parameter:\n"\
+    "    -f file_name        reading data from a file.\n"\
+    "    -h                  print this message.";
+
+  puts(help_msg);
+  exit(0);
+}
