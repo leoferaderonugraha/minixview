@@ -1,25 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
+#include <sys/stat.h> // for getting the file size
 
 #include "functions.h"
 #include "swinfo.h"
 
-int get_file_size(char *fname) {
+int getFileSize(const char *filename)
+{
   struct stat st;
-  stat(fname, &st);
+  stat(filename, &st);
   return st.st_size;
 }
 
-int get_file_size2(FILE *fp) {
+int getFileSize2(FILE *fp)
+{
   fseek(fp, 0, SEEK_END);
   int fsize = ftell(fp);
   fseek(fp, 0, SEEK_SET);
   return fsize;
 }
 
-void cpnb(void *dst, void *src, int n) {
-  char *sptr = src;
+void copyNBytes(void *dst, const void *src, int n)
+{
+  const char *sptr = src;
   char *dptr = dst;
 
   while (n--) {
@@ -31,27 +34,46 @@ void cpnb(void *dst, void *src, int n) {
   }
 }
 
-void SIGINT_handler() {
+void SIGINT_handler()
+{
   printf("\n");
-  exit(1);
+  exit(EXIT_SUCCESS);
 }
 
-void print_version() {
-  printf("mxview V%s %s by %s\n", SW_VERSION, SW_DATE, SW_AUTHOR);
-  exit(0);
+void printHelp()
+{
+  char helpMsg[] =  "Usage:\n"
+                    "        mxview -f <file>\n"
+                    "    or\n"
+                    "        cat <file> | mxview\n"
+                    "Options:\n"
+                    "     -f, --file <file>                   reading data from a file.\n"
+                    "     -p, --patch <config file>           patch the file with the given config file.\n"
+                    "     -l, --lines <n>                     print up to n lines.\n"
+                    "     -v, --version                       print current version.\n"
+                    "     -h, --help                          print this message.";
+
+  puts(helpMsg);
+  exit(EXIT_SUCCESS);
 }
 
-void print_help() {
-  char help_msg[] = \
-    "Usage:\n"\
-    "        mxview -f file_name\n"\
-    "    or\n"\
-    "        cat file_name | mxview\n"\
-    "Options:\n"\
-    "    -f file_name        reading data from a file.\n"\
-    "    -v                  print current version.\n"
-    "    -h                  print this message.";
+void printVersion()
+{
+  printf("mxview V%s %s by %s\n", SW_VERSION[0][0], SW_DATE, SW_AUTHOR);
+  exit(EXIT_SUCCESS);
+}
 
-  puts(help_msg);
-  exit(0);
+int charCount(const char *str, const char ch)
+{
+  int counter = 0;
+  const char *ptr = str;
+
+  while (*ptr) {
+    if (*ptr == ch) {
+      counter++;
+    }
+    ptr++;
+  }
+
+  return counter;
 }

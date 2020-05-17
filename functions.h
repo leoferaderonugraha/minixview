@@ -1,18 +1,16 @@
-#ifndef FUNCTIONS
-#define FUNCTIONS
+#ifndef FUNCTIONS_H_
+#define FUNCTIONS_H_
 
-
-int get_file_size(char *fname);
-int get_file_size2(FILE *fp);
+int getFileSize(const char *);
+int getFileSize2(FILE *);
 
 // ctrl_c (interrupt) signal handler
 void SIGINT_handler();
 
-// cpnb = copy n byte(s)
-void cpnb(void *dst, void *src, int n);
+void copyNBytes(void *, const void *, int);
 
-void print_help();
-void print_version();
+void printHelp();
+void printVersion();
 
 enum stats {
   READ_FROM_STDIN,
