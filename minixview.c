@@ -1,146 +1,218 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>  // for isprint()
-#include <unistd.h> // for getopt()
-#include <signal.h> // for catching the ctrl+c
+#include <ctype.h>    // for isprint()
+#include <unistd.h>   // for getopt()
+#include <signal.h>   // for catching the ctrl+c / SIGINT
+#include <getopt.h>   // command parsing
+#include <stdbool.h>  // use boolean for readibility
 
 #include "functions.h"
+#include "patcher/patcher.h"
 
-#define MAX_BUFF 256
+#define MAX_BUFFER 256
 
-int main(int argc, char**argv) {
+
+int main(int argc, char**argv)
+{
+  int optionsIndex = 0;
+  struct option longOptions[] = {
+    {"file",    required_argument,  NULL, 'f'},
+    {"lines",   required_argument,  NULL, 'l'},
+    {"version", no_argument,        NULL, 'v'},
+    {"help",    no_argument,        NULL, 'h'},
+    {"patch",   required_argument,  NULL, 'p'},
+    {NULL,      0,                  NULL,   0}
+  };
+
   int flag;
-  char *file_name = NULL;
+  char *fileName = NULL;
   unsigned char *content;
-  unsigned char buffer[MAX_BUFF];
+  unsigned char buffer[MAX_BUFFER];
 
-  int offset, line_offset;
-  int content_len = 0;
-  int bytes_copied;
+  int offset, lineOffset;
+  int contentLen = 0;
+  int bytesCopied;
 
+  bool printByLines = false;
+  bool stop = false;
+  int nLines;
 
-  if (argc < 2){
+  char *configFile;
+  bool patching = false;
+
+  if (argc < 2) {
     flag = READ_FROM_STDIN;
-    content = malloc(sizeof(char) * MAX_BUFF);
+    content = malloc(sizeof(unsigned char) * MAX_BUFFER);
 
     int n = 1;
     offset = 0;
     // catching the ctrl case
-    // in case if you're forgot to type -f file_name
+    // in case if you're forgot to type -f fileName
     signal(SIGINT, SIGINT_handler);
 
-    while (bytes_copied = read(STDIN_FILENO, buffer, MAX_BUFF)) {
+    while ((bytesCopied = read(STDIN_FILENO, buffer, MAX_BUFFER)) > 0) {
       // if the current buffer it's not enough
       // then reallocate some more
-      if (bytes_copied == MAX_BUFF) {
+      if (bytesCopied == MAX_BUFFER) {
         n++;
-        content = realloc(content, n * sizeof(char) * MAX_BUFF);
+        unsigned char *tmp = realloc(content, sizeof(unsigned char) * MAX_BUFFER * n); // ++n
+
+        if (tmp != NULL) {
+          content = tmp;
+        } else {
+          free(content);
+          fprintf(stderr, "Error on reallocating some memory.\n");
+          exit(EXIT_FAILURE);
+        }
       }
 
-      cpnb(&content[offset], buffer, MAX_BUFF);
-      offset += bytes_copied;
-      content_len += bytes_copied;
+      copyNBytes(&content[offset], buffer, MAX_BUFFER);
+      offset += bytesCopied;
+      contentLen += bytesCopied;
     }
-  }
-  else {
+  } else {
     int opt;
     flag = READ_FROM_FILE;
 
-    while ((opt = getopt(argc, argv, ":f:hv")) != EOF) {
+    while ((opt = getopt_long(argc, argv, ":f:p:l:vh", longOptions, &optionsIndex)) != -1) {
       switch (opt) {
         case 'f':
-          file_name = optarg;
+          fileName = optarg;
           break;
-        case 'v':
-          print_version();
+        case 'p':
+          patching = true;
+          configFile = optarg;
+          break;
+        case 'l':
+          nLines = strtol(optarg, NULL, 10);
+          printByLines = (nLines > 0);
           break;
         case ':':
-          printf("Please specify the option argument.\n");
-          exit(1);
+          fprintf(stderr, "Please specify the option argument.\n");
+          exit(EXIT_FAILURE);
+          break;
+        case 'v':
+          printVersion();
           break;
         case 'h':
         case '?':
-          print_help();
+          printHelp();
           break;
       }
     }
 
-    // preventing from reading a file without
-    // specifying them first
-    if (file_name == NULL && optind) {
-      print_help();
+    // preventing from reading a file
+    // without specifying its name
+    if (fileName == NULL && optind) {
+      printHelp();
+    } else if (fileName != NULL && patching) {
+      if ((patchFile(fileName, configFile)) == PATCH_SUCCESS) {
+        printf("Patching success.\n");
+        printf("%d byte(s) has been written.\n", getWrittenBytes());
+        exit(EXIT_SUCCESS);
+      } else {
+        fprintf(stderr, "Patching failed.\n");
+        exit(EXIT_FAILURE);
+      }
     }
 
-    FILE *fp = fopen(file_name, "rb");
-    int file_size = get_file_size(file_name);
+    FILE *fp = fopen(fileName, "rb");
 
-    content = malloc(sizeof(char) * file_size);
+    // failed to open the file
+    if (fp == NULL) {
+      fprintf(stderr, "Couldn't open the file.\n");
+      exit(EXIT_FAILURE);
+    }
+
+    int fileSize = getFileSize(fileName);
+    content = malloc(sizeof(unsigned char) * fileSize);
 
     if (content == NULL) {
       fprintf(stderr, "Fail to allocating the required memory.\n");
-      return 1;
+      exit(EXIT_FAILURE);
     }
 
-    bytes_copied = 0;
+    int bytesToCopy = fileSize;
+    bytesCopied = 0;
     offset = 0;
-    int bytes_to_copy = file_size;
 
     // read the whole file content and store it to *content
-    while (bytes_to_copy > 0) {
-      bytes_copied = fread(&buffer, 1, 256, fp);
-      bytes_to_copy -= bytes_copied;
+    while (bytesToCopy > 0) {
+      bytesCopied = fread(&buffer, 1, 256, fp);
+      bytesToCopy -= bytesCopied;
 
-      cpnb(&content[offset], buffer, bytes_copied);
-      offset += bytes_copied;
+      copyNBytes(&content[offset], buffer, bytesCopied);
+
+      offset += bytesCopied;
     }
+
     fclose(fp);
   }
 
   // set offset back to zero
   offset = 0;
-  line_offset = 0;
+  lineOffset = 0;
+
+  // check if it's reading from a file
   if (flag == READ_FROM_FILE) {
-    content_len = get_file_size(file_name);
+    contentLen = getFileSize(fileName);
   }
 
   // display the content in a hex value
-  for(int stat = 0, total_ch = 0, total_space = 0; (content_len - offset) > 0;) {
+  for(int reachEOF = 0, totalChar = 0, totalSpace = 0; (contentLen - offset) > 0 && !stop;) {
+    if (printByLines) {
+      if (nLines > 0) {
+        nLines--;
+      } else {
+        stop = true;
+        break;
+      }
+    }
+
     // printing its offset
-    printf("%08x:    ", line_offset);
+    printf("%08x:    ", lineOffset);
 
-    for (int i = 0; i < 8 && !stat; i++) {
-      for (int j = 0; j < 2 && !stat; j++) {
-        if ((offset + j + 1) >= content_len) stat = 1;
-
-        total_ch++;
+    // print the hex code
+    for (int i = 0; i < 8 && !reachEOF; i++) {
+      for (int j = 0; j < 2 && !reachEOF; j++) {
+        // stop the loop if it has reached the EOF
+        if ((offset + j + 1) >= contentLen) {
+          reachEOF = 1;
+        }
+        totalChar++;
         printf("%02x", content[offset + j]);
       }
 
       offset += 2;
       printf(" ");
-      total_space++;
+      totalSpace++;
     }
 
-    //fprintf(stderr, "%d\n", total_ch);
+    int align = totalChar * 2 + totalSpace;
 
-    // for align
-    int align = total_ch * 2 + total_space;
-    int max_print_ch = 40;
-        max_print_ch += 4;  // align for 4 spaces
+    // 40 is max printed character
+    // and 4 is for creating space
+    int maxPrintChar = 44;
 
-    for (; align < max_print_ch; align++)  printf(" ");
+    // aligning with whitespace
+    for (; align < maxPrintChar; align++) {
+      printf(" ");
+    }
+
+    // printing the border
     printf("┇");
 
     // preview the hex code as a printable character
-    for (int cnt = 0, ch, pos; cnt < total_ch; cnt++) {
-      pos = offset - total_ch + cnt - (total_ch % 2);
-      ch = content[pos];
+    for (int i = 0, ch, position; i < totalChar; i++) {
+      // get the exact position of the character
+      position = offset - totalChar + i - (totalChar % 2);
+      ch = content[position];
       printf("%c", (isprint(ch)) ? ch : '.');
     }
 
-    line_offset += total_ch;
-    total_ch = 0;
-    total_space = 0;
+    lineOffset += totalChar;
+    totalChar = 0;
+    totalSpace = 0;
     printf("\n");
   }
 
