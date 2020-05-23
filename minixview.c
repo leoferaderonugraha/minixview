@@ -109,7 +109,7 @@ int main(int argc, char**argv)
 
     // open the first wild arg as a file
     // so we can open a file without using the -f
-    if (fileName == NULL && optind) {
+    if (fileName == NULL && (optind < argc)) {
       //printHelp();
       fileName = argv[optind];
     } else if (fileName != NULL && patching) {
