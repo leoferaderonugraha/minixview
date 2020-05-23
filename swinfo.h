@@ -19,6 +19,7 @@
 // SW_VERSION[MAX_MAJOR][MAX_MINOR][STR_LEN]
 static const char *SW_VERSION[][10] = {
   /*from the latest to the oldest */
+  {"0.11.0"},
   {"0.10.1", "0.10.0"},
   {"0.9.4", "0.9.3"}
 };
