@@ -18,12 +18,15 @@ int main(int argc, char**argv)
   struct option longOptions[] = {
     {"file",    required_argument,  NULL, 'f'},
     {"lines",   required_argument,  NULL, 'l'},
+    {"border",  required_argument,  NULL, 'b'},
+    {"patch",   required_argument,  NULL, 'p'},
     {"version", no_argument,        NULL, 'v'},
     {"help",    no_argument,        NULL, 'h'},
-    {"patch",   required_argument,  NULL, 'p'},
     {NULL,      0,                  NULL,   0}
   };
 
+  /* maybe we would to use mutiple chars for border? */
+  char *border = "|";
   int flag;
   char *fileName = NULL;
   unsigned char *content;
@@ -74,7 +77,7 @@ int main(int argc, char**argv)
     int opt;
     flag = READ_FROM_FILE;
 
-    while ((opt = getopt_long(argc, argv, ":f:p:l:vh", longOptions, &optionsIndex)) != -1) {
+    while ((opt = getopt_long(argc, argv, ":f:p:l:b:vh", longOptions, &optionsIndex)) != -1) {
       switch (opt) {
         case 'f':
           fileName = optarg;
@@ -86,6 +89,9 @@ int main(int argc, char**argv)
         case 'l':
           nLines = strtol(optarg, NULL, 10);
           printByLines = (nLines > 0);
+          break;
+        case 'b':
+          border = optarg;
           break;
         case ':':
           fprintf(stderr, "Please specify the option argument.\n");
@@ -200,7 +206,7 @@ int main(int argc, char**argv)
     }
 
     // printing the border
-    printf("┇");
+    printf("%s", border);
 
     // preview the hex code as a printable character
     for (int i = 0, ch, position; i < totalChar; i++) {

@@ -50,6 +50,7 @@ void printHelp()
                     "     -f, --file <file>                   reading data from a file.\n"
                     "     -p, --patch <config file>           patch the file with the given config file.\n"
                     "     -l, --lines <n>                     print up to n lines.\n"
+                    "     -b, --border <s>                    set s as a border (default border: |).\n"
                     "     -v, --version                       print current version.\n"
                     "     -h, --help                          print this message.";
 
