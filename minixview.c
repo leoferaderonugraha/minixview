@@ -50,7 +50,7 @@ int main(int argc, char**argv)
     int n = 1;
     offset = 0;
     // catching the ctrl case
-    // in case if you're forgot to type -f fileName
+    // to get out of the loop nicely
     signal(SIGINT, SIGINT_handler);
 
     while ((bytesCopied = read(STDIN_FILENO, buffer, MAX_BUFFER)) > 0) {
@@ -107,10 +107,11 @@ int main(int argc, char**argv)
       }
     }
 
-    // preventing from reading a file
-    // without specifying its name
+    // open the first wild arg as a file
+    // so we can open a file without using the -f
     if (fileName == NULL && optind) {
-      printHelp();
+      //printHelp();
+      fileName = argv[optind];
     } else if (fileName != NULL && patching) {
       if ((patchFile(fileName, configFile)) == PATCH_SUCCESS) {
         printf("Patching success.\n");

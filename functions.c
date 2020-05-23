@@ -43,6 +43,7 @@ void SIGINT_handler()
 void printHelp()
 {
   char helpMsg[] =  "Usage:\n"
+                    "        mxview <file>\n"
                     "        mxview -f <file>\n"
                     "    or\n"
                     "        cat <file> | mxview\n"
