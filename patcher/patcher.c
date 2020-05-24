@@ -1,3 +1,11 @@
+/* The config file is
+ * Offset:Hex Value
+ *
+ * keep in mind that currently this version only support
+ * patching byte by byte, that mean you shall write offset
+ * multiple times and increase it by 1 byte
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
