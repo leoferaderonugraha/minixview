@@ -46,6 +46,7 @@ void printHelp()
                     "        mxview <file>\n"
                     "        mxview -f <file>\n"
                     "    or\n"
+                    "        mxview < <file>\n"
                     "        cat <file> | mxview\n"
                     "Options:\n"
                     "     -f, --file <file>                   reading data from a file.\n"
